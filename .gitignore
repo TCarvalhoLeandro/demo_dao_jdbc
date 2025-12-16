@@ -1,0 +1,50 @@
+# --- Arquivos Compilados (Java) ---
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# --- Logs e Arquivos Temporários ---
+*.log
+*.tmp
+
+# --- IDE: Eclipse ---
+.classpath
+.project
+.settings/
+bin/
+
+# --- IDE: IntelliJ IDEA ---
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# --- IDE: VS Code ---
+.vscode/
+*.code-workspace
+
+# --- Build: Maven ---
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+dependency-reduced-pom.xml
+
+# --- Build: Gradle ---
+.gradle/
+build/
+
+# --- Sistema Operacional (Lixo gerado pelo Windows/Mac) ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Segurança (Para não vazar senhas do banco) ---
+.env
+*.properties
+!application.properties 
+# (O ! acima significa: não ignore o application.properties, 
+# mas cuidado para não colocar a senha real nele ao subir pro Git)
