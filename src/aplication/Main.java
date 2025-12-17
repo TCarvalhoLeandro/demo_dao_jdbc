@@ -2,6 +2,9 @@ package aplication;
 
 
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 
@@ -12,8 +15,9 @@ import model.entities.Seller;
 
 public class Main {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws NumberFormatException, IOException {
 		
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		
 		
 		SellerDao sellerDao = DaoFactory.createSellerDao();// O programa nao conhece a implementacao, conhece somente a interface
@@ -54,6 +58,15 @@ public class Main {
 		seller.setEmail("lukecage@gmail.com");
 		sellerDao.update(seller);
 		System.out.println("Atualização concluida!");
+		
+		System.out.println();
+		
+		System.out.println(">>>>>> TESTE 6: Seller deleteById <<<<<<");
+		System.out.println("Digite o Id para deletar: ");
+		int id = Integer.parseInt(br.readLine());
+		sellerDao.deleteById(id);
+		System.out.println("Deletado!");
+		
 		
 	}
 
