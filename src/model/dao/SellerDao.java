@@ -17,5 +17,5 @@ public interface SellerDao {
 	
 	List<Seller> findAll(); // lista todos os objetos do banco de dados
 	
-	List<Seller> findByDepertment(Department department);
+	List<Seller> findByDepartment(Department department);
 }
