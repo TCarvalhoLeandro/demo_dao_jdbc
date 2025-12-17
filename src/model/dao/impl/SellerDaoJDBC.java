@@ -25,13 +25,15 @@ public class SellerDaoJDBC implements SellerDao{
 		this.conn = conn;
 	}
 	
+	// INSERIR NA TABELA ================================================================================================
 	@Override
 	public void insert(Seller obj) {
 		PreparedStatement st = null;
 		try {
 			// 1. PREPARAR O SQL DE INSERÇÃO
 	        // Atenção ao segundo parâmetro: Statement.RETURN_GENERATED_KEYS
-	        // Ele avisa ao JDBC: "Vou inserir dados, e quero que você traga de volta a chave primária (ID) que o banco criar".
+	        // Ele avisa ao JDBC: "Vou inserir dados, e quero que você traga 
+			// de volta a chave primária (ID) que o banco criar".
 			st = conn.prepareStatement("INSERT INTO seller "
 									 + "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
 									 + "VALUES "
@@ -86,7 +88,7 @@ public class SellerDaoJDBC implements SellerDao{
 		}
 		
 	}
-
+	// ATUALIZAR POR ID ================================================================================================== 
 	@Override
 	public void update(Seller obj) {
 		PreparedStatement st = null;
@@ -123,22 +125,40 @@ public class SellerDaoJDBC implements SellerDao{
 		}
 		
 	}
-
+	// DELETAR POR ID =======================================================================================
 	@Override
 	public void deleteById(Integer id) {
+		// Declara o PreparedStatement fora do try para garantir o fechamento no finally
 		PreparedStatement st = null;
 		
 		try {
+			// 1. PREPARAR O SQL DE REMOÇÃO
+	        // O comando é direto: Apague da tabela seller ONDE o Id for igual ao parâmetro.
+	        // O '?' é fundamental para evitar SQL Injection.
 			st = conn.prepareStatement("DELETE FROM seller WHERE Id = ?");
 			
+			// 2. DEFINIR O PARÂMETRO
+	        // Substitui o '?' pelo valor do ID recebido no método.
 			st.setInt(1, id);
 			
+			
+			// 3. EXECUTAR A REMOÇÃO
+	        // Usamos 'executeUpdate()' porque é uma operação que altera o banco (não é uma consulta).
+	        // Diferente do Insert, aqui não precisamos verificar o retorno (int) se não quisermos validar
+	        // se o ID realmente existia. O comando roda e, se o ID existir, apaga; se não, nada acontece.
 			st.executeUpdate();
 		}
 		catch(SQLException e) {
+			
+			// TRATAMENTO DE ERRO DE INTEGRIDADE
+	        // Aqui mora um perigo: Se você tentar deletar um Vendedor que já tem Vendas registradas
+	        // em outra tabela, o banco vai bloquear e lançar uma exceção de "Integrity Constraint".
+	        // O DbException vai encapsular essa mensagem técnica.
 			throw new DbException(e. getMessage());
 		}
 		finally {
+			// 4. FECHAR RECURSO
+	        // Fecha o statement para liberar recursos do banco.
 			DB.closeStatement(st);
 		}
 		
