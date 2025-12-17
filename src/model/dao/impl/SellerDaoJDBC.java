@@ -29,34 +29,59 @@ public class SellerDaoJDBC implements SellerDao{
 	public void insert(Seller obj) {
 		PreparedStatement st = null;
 		try {
+			// 1. PREPARAR O SQL DE INSERÇÃO
+	        // Atenção ao segundo parâmetro: Statement.RETURN_GENERATED_KEYS
+	        // Ele avisa ao JDBC: "Vou inserir dados, e quero que você traga de volta a chave primária (ID) que o banco criar".
 			st = conn.prepareStatement("INSERT INTO seller "
 									 + "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
 									 + "VALUES "
 									 + "(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			
+			// 2. DEFINIR OS VALORES (Substituir os '?')
 			st.setString(1, obj.getName());
 			st.setString(2, obj.getEmail());
+			
+			// Conversão de Data: O Java usa java.util.Date, mas o JDBC espera java.sql.Date.
+	        // Pegamos o tempo em milissegundos (.getTime()) para fazer a conversão.
 			st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
 			st.setDouble(4, obj.getBaseSalary());
+			
+			// Chave Estrangeira: Pegamos apenas o ID do objeto Department associado para salvar na tabela.
 			st.setInt(5, obj.getDepartment().getId());
 			
+			// 3. EXECUTAR A INSERÇÃO
+	        // executeUpdate() altera o banco e retorna quantos registros foram afetados.
+	        // Esperamos que retorne 1 (uma linha criada).
 			int linhasConstruidas =  st.executeUpdate();
 			
+			
+			// 4. RECUPERAR O ID GERADO
 			if(linhasConstruidas > 0) {
-				ResultSet rs = st.getGeneratedKeys();
+				ResultSet rs = st.getGeneratedKeys();// Pega o ResultSet especial contendo as chaves geradas
+				
+				// Se existir uma chave lá dentro...
 				if(rs.next()) {
+					// Pega o valor da primeira coluna desse ResultSet (que é o novo ID)
 					int id = rs.getInt(1);
-					obj.setId(id);
+					
+					// ATUALIZAÇÃO DO OBJETO:
+	                // O objeto 'obj' que veio como argumento não tinha ID (era null).
+	                // Agora setamos o ID nele para que o objeto na memória fique igual ao do banco.
+	                obj.setId(id);
+				
 				}
-				DB.closeResultSet(rs);
+				DB.closeResultSet(rs);// Fecha este ResultSet auxiliar
 			}
 			else {
+				// Se executeUpdate retornou 0, algo estranho aconteceu e nada foi salvo.
 				throw new DbException("Erro inexperado. Nenhuma linha construida.");
 			}
 		}
 		catch(SQLException e) {
-			throw new DbException(e.getMessage());
+			throw new DbException(e.getMessage());// Tratamento padrão de erro
 		}
 		finally {
+			// Fecha o Statement (a conexão 'conn' continua aberta para outras operações)
 			DB.closeStatement(st);
 		}
 		
@@ -64,7 +89,38 @@ public class SellerDaoJDBC implements SellerDao{
 
 	@Override
 	public void update(Seller obj) {
-		// TODO Auto-generated method stub
+		PreparedStatement st = null;
+		try {
+			// 1. PREPARAR O SQL DE ATUALIZAÇÃO
+	        // Atenção ao segundo parâmetro: Statement.RETURN_GENERATED_KEYS
+	        // Ele avisa ao JDBC: "Vou inserir dados, e quero que você traga de volta a chave primária (ID) que o banco criar".
+			st = conn.prepareStatement("UPDATE seller "
+									  + "SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+									  + "WHERE Id = ?");
+			
+			// 2. DEFINIR OS VALORES (Substituir os '?')
+			st.setString(1, obj.getName());
+			st.setString(2, obj.getEmail());
+			
+			// Conversão de Data: O Java usa java.util.Date, mas o JDBC espera java.sql.Date.
+	        // Pegamos o tempo em milissegundos (.getTime()) para fazer a conversão.
+			st.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+			st.setDouble(4, obj.getBaseSalary());
+			
+			// Chave Estrangeira: Pegamos apenas o ID do objeto Department associado para salvar na tabela.
+			st.setInt(5, obj.getDepartment().getId());
+			
+			st.setInt(6, obj.getId());
+			
+			st.executeUpdate();
+		}
+		catch(SQLException e) {
+			throw new DbException(e.getMessage());// Tratamento padrão de erro
+		}
+		finally {
+			// Fecha o Statement (a conexão 'conn' continua aberta para outras operações)
+			DB.closeStatement(st);
+		}
 		
 	}
 
