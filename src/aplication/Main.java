@@ -2,9 +2,11 @@ package aplication;
 
 
 
+import java.util.List;
+
 import model.dao.DaoFactory;
 import model.dao.SellerDao;
-
+import model.entities.Department;
 import model.entities.Seller;
 
 public class Main {
@@ -15,9 +17,19 @@ public class Main {
 		
 		SellerDao sellerDao = DaoFactory.createSellerDao();// O programa nao conhece a implementacao, conhece somente a interface
 		
+		System.out.println(">>>>>> TESTE 1: Seller findById <<<<<<");
 		Seller seller = sellerDao.findById(2);
-		
 		System.out.println(seller);
+		
+		System.out.println();
+		
+		System.out.println(">>>>>> TESTE 2: Seller findByDepartment <<<<<<");
+		Department dep = new Department(1, null);
+		List<Seller> sellerList = sellerDao.findByDepertment(dep);
+		for(Seller obj: sellerList) {
+			System.out.println(obj);
+		}
+		
 
 	}
 

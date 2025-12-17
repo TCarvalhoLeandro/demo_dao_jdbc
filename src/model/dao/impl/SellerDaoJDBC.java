@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import db.DB;
 import db.DbException;
@@ -118,7 +121,75 @@ public class SellerDaoJDBC implements SellerDao{
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
+
+	@Override
+	public List<Seller> findByDepertment(Department department) {
+		
+		// Declaração dos recursos fora do try para fechar no finally
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		
+		try {
+			// 1. PREPARAÇÃO DO SQL
+	        // Seleciona vendedores e o nome do departamento (para preencher o objeto Department depois)
+			
+			st = conn.prepareStatement("SELECT seller.*,department.Name as DepName "
+					+ "FROM seller INNER JOIN department "// Junta as tabelas
+					+ "ON seller.DepartmentId = department.Id "// Onde a chave estrangeira bate com a primária
+					+ "WHERE DepartmentId = ? "// Filtra: queremos só os vendedores DESTE departamento
+					+ "ORDER BY Name");// Ordena a lista final por nome alfabético
+			
+			// Substitui o '?' pelo ID do departamento que veio no parâmetro do método
+			st.setInt(1, department.getId());
+			
+			// Executa a query e recebe a tabela virtual de resultados
+			rs = st.executeQuery();
+			
+			// Cria a lista vazia que será retornada no final
+			List<Seller> list = new ArrayList<>();
+			
+			// TRUQUE DO MAP (Controle de Unicidade):
+	        // Cria um mapa vazio para guardar os Departamentos que já instanciamos.
+	        // Chave: ID do departamento (Integer) -> Valor: Objeto Department
+			Map<Integer, Department> map = new HashMap<>();
+			
+			// Loop 'while': Diferente do 'if(rs.next())', usamos 'while' porque
+	        // esperamos VÁRIOS resultados (uma lista de vendedores), não apenas um.
+			while (rs.next()) {
+				
+				// Verifica no Map se já existe um Department com o ID dessa linha atual
+				Department dep = map.get(rs.getInt("DepartmentId"));
+				
+				// Se 'dep' for nulo, significa que é a primeira vez que encontramos esse departamento
+				if(dep == null) {
+					// Instancia o departamento usando os dados do banco
+					dep = instantiateDepartment(rs);
+					
+					// Salva no map para que na próxima volta do loop a gente não crie outro igual
+					map.put(rs.getInt("DepartmentId"), dep);
+				}
+				
+				// Instancia o Vendedor, passando o objeto 'dep'.
+	            // Note que se for o 2º, 3º ou 10º vendedor, o 'dep' será O MESMO objeto da memória
+	            // recuperado pelo map.get(), e não uma nova instância duplicada.
+				Seller seller = instantiateSeller(rs, dep);
+				
+				// Adiciona o vendedor pronto na lista final
+				list.add(seller);
+				
+			}
+			// Retorna a lista preenchida
+			return list;
+		}
+		catch(SQLException e) {
+			// Trata erros de SQL lançando exceção personalizada
+			throw new DbException(e.getMessage());
+		}
+		finally {
+			// Fecha recursos para evitar vazamento de memória
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
+	}
 
 }
